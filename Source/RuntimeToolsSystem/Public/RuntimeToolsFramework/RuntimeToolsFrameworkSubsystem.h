@@ -61,6 +61,9 @@ public:
 	bool HaveActiveTool();
 
 	UFUNCTION(BlueprintCallable)
+	UInteractiveTool* GetActiveTool();
+
+	UFUNCTION(BlueprintCallable)
 	bool IsActiveToolAcceptCancelType();
 
 	UFUNCTION(BlueprintCallable)
@@ -148,15 +151,10 @@ protected:
 
 public:
 	// input handling
-	void AddMouseMoveX(float Delta);
-	void AddMouseMoveY(float Delta);
-
 	void OnLeftMouseDown();
 	void OnLeftMouseUp();
 
 protected:
-	FVector2D AccumMouseMove;
-
 	FVector2D PrevMousePosition = FVector2D::ZeroVector;
 
 	FInputDeviceState CurrentMouseState;
@@ -164,10 +162,11 @@ protected:
 
 	void ProcessAccumulatedMouseInput();
 
-
 	FViewCameraState CurrentViewCameraState;
 
+	void InternalConsistencyChecks();
 	bool bIsShuttingDown = false;
+
 
 public:
 	void AddPropertySetKeepalive(UInteractiveToolPropertySet* PropertySet);

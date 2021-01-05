@@ -24,8 +24,8 @@ public:
 	URuntimeMeshSceneObject();
 
 	void Initialize(UWorld* TargetWorld, const FMeshDescription* InitialMeshDescription);
+	void Initialize(UWorld* TargetWorld, const FDynamicMesh3* InitialMesh);
 
-	void Initialize(ADynamicPMCActor* Actor, UGeneratedMesh* NewMesh);
 
 	void SetTransform(FTransform Transform);
 
@@ -36,6 +36,11 @@ public:
 	UPROPERTY()
 	ADynamicSDMCActor* SimpleDynamicMeshActor = nullptr;
 
+	UFUNCTION(BlueprintCallable, Category = "RuntimeMeshSceneObject")
+	void CopyMaterialsFromComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "RuntimeMeshSceneObject")
+	void SetAllMaterials(UMaterialInterface* SetToMaterial);
 
 	UFUNCTION(BlueprintCallable, Category = "RuntimeMeshSceneObject")
 	void SetToHighlightMaterial(UMaterialInterface* Material);
@@ -57,6 +62,9 @@ protected:
 	void UpdateSourceMesh(const FMeshDescription* MeshDescription);
 
 	void OnExternalDynamicMeshComponentUpdate();
+
+	TArray<UMaterialInterface*> Materials;
+	void UpdateComponentMaterials(bool bForceRefresh);
 };
 
 

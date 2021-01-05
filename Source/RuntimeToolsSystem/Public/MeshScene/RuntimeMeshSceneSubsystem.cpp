@@ -51,11 +51,28 @@ URuntimeMeshSceneObject* URuntimeMeshSceneSubsystem::CreateNewSceneObject()
 		TUniquePtr<FAddRemoveSceneObjectChange> AddChange = MakeUnique<FAddRemoveSceneObjectChange>();
 		AddChange->SceneObject = SceneObject;
 		AddChange->bAdded = true;
-		TransactionsAPI->AppendChange(this, MoveTemp(AddChange), LOCTEXT("AddObjectChange", "Add SceneObject"));
+		// use SceneObject as target so that transaction will keep it from being GC'd
+		TransactionsAPI->AppendChange(SceneObject, MoveTemp(AddChange), LOCTEXT("AddObjectChange", "Add SceneObject"));
 	}
+
+	SceneObject->SetAllMaterials(StandardMaterial);
 
 	return SceneObject;
 }
+
+
+URuntimeMeshSceneObject* URuntimeMeshSceneSubsystem::FindSceneObjectByActor(AActor* Actor)
+{
+	for (URuntimeMeshSceneObject* SceneObject : SceneObjects)
+	{
+		if (SceneObject->GetActor() == Actor)
+		{
+			return SceneObject;
+		}
+	}
+	return nullptr;
+}
+
 
 bool URuntimeMeshSceneSubsystem::DeleteSceneObject(URuntimeMeshSceneObject* SceneObject)
 {
@@ -76,7 +93,8 @@ bool URuntimeMeshSceneSubsystem::DeleteSceneObject(URuntimeMeshSceneObject* Scen
 			TUniquePtr<FAddRemoveSceneObjectChange> RemoveChange = MakeUnique<FAddRemoveSceneObjectChange>();
 			RemoveChange->SceneObject = SceneObject;
 			RemoveChange->bAdded = false;
-			TransactionsAPI->AppendChange(this, MoveTemp(RemoveChange), LOCTEXT("RemoveObjectChange", "Delete SceneObject"));
+			// use SceneObject as target so that transaction will keep it from being GC'd
+			TransactionsAPI->AppendChange(SceneObject, MoveTemp(RemoveChange), LOCTEXT("RemoveObjectChange", "Delete SceneObject"));
 		}
 
 		return true;
@@ -87,6 +105,59 @@ bool URuntimeMeshSceneSubsystem::DeleteSceneObject(URuntimeMeshSceneObject* Scen
 		return false;
 	}
 }
+
+
+bool URuntimeMeshSceneSubsystem::DeleteSelectedSceneObjects()
+{
+	return DeleteSelectedSceneObjects(nullptr);
+}
+
+bool URuntimeMeshSceneSubsystem::DeleteSelectedSceneObjects(AActor* SkipActor)
+{
+	if (SelectedSceneObjects.Num() == 0) return false;
+
+	if (TransactionsAPI)
+	{
+		TransactionsAPI->BeginUndoTransaction(LOCTEXT("DeleteSelectedObjectsChange", "Delete Objects"));
+	}
+
+	TArray<URuntimeMeshSceneObject*> DeleteObjects = SelectedSceneObjects;
+
+	BeginSelectionChange();
+	SelectedSceneObjects.Reset();
+	EndSelectionChange();
+
+	for (URuntimeMeshSceneObject* SceneObject : DeleteObjects)
+	{
+		if (SceneObject->GetActor() == SkipActor)
+		{
+			continue;
+		}
+
+		RemoveSceneObjectInternal(SceneObject, true);
+
+		if (TransactionsAPI)
+		{
+			TUniquePtr<FAddRemoveSceneObjectChange> RemoveChange = MakeUnique<FAddRemoveSceneObjectChange>();
+			RemoveChange->SceneObject = SceneObject;
+			RemoveChange->bAdded = false;
+			// use SceneObject as target so that transaction will keep it from being GC'd
+			TransactionsAPI->AppendChange(SceneObject, MoveTemp(RemoveChange), LOCTEXT("RemoveObjectChange", "Delete SceneObject"));
+		}
+	}
+
+	if (TransactionsAPI)
+	{
+		TransactionsAPI->EndUndoTransaction();
+	}
+
+	OnSelectionModified.Broadcast(this);
+	return true;
+}
+
+
+
+
 
 
 void URuntimeMeshSceneSubsystem::ClearSelection()
@@ -296,33 +367,28 @@ void URuntimeMeshSceneSubsystem::RemoveSceneObjectInternal(URuntimeMeshSceneObje
 }
 
 
+
 void FAddRemoveSceneObjectChange::Apply(UObject* Object)
 {
-	if (URuntimeMeshSceneSubsystem* Subsystem = Cast<URuntimeMeshSceneSubsystem>(Object))
+	if (bAdded)
 	{
-		if (bAdded)
-		{
-			Subsystem->AddSceneObjectInternal(SceneObject, true);
-		}
-		else
-		{
-			Subsystem->RemoveSceneObjectInternal(SceneObject, true);
-		}
+		URuntimeMeshSceneSubsystem::Get()->AddSceneObjectInternal(SceneObject, true);
+	}
+	else
+	{
+		URuntimeMeshSceneSubsystem::Get()->RemoveSceneObjectInternal(SceneObject, true);
 	}
 }
 
 void FAddRemoveSceneObjectChange::Revert(UObject* Object)
 {
-	if (URuntimeMeshSceneSubsystem* Subsystem = Cast<URuntimeMeshSceneSubsystem>(Object))
+	if (bAdded)
 	{
-		if (bAdded)
-		{
-			Subsystem->RemoveSceneObjectInternal(SceneObject, true);
-		}
-		else
-		{
-			Subsystem->AddSceneObjectInternal(SceneObject, true);
-		}
+		URuntimeMeshSceneSubsystem::Get()->RemoveSceneObjectInternal(SceneObject, true);
+	}
+	else
+	{
+		URuntimeMeshSceneSubsystem::Get()->AddSceneObjectInternal(SceneObject, true);
 	}
 }
 

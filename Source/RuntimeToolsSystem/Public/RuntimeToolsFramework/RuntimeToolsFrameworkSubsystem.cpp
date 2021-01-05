@@ -12,6 +12,7 @@
 #include "Slate/SceneViewport.h"
 #include "Slate/SGameLayerManager.h"
 #include "Engine/LocalPlayer.h"
+#include "GameFramework/PlayerController.h"
 
 #include "DynamicMeshComponentTarget.h"
 
@@ -321,9 +322,10 @@ void URuntimeToolsFrameworkSubsystem::ShutdownToolsContext()
 
 	if (ToolsContext != nullptr)
 	{
+		CancelOrCompleteActiveTool();
+
 		TransformInteraction->Shutdown();
 
-		ToolsContext->DeactivateAllActiveTools();
 		ToolsContext->Shutdown();
 	}
 
@@ -575,7 +577,6 @@ void URuntimeToolsFrameworkSubsystem::SetContextActor(AToolsContextActor* ActorI
 		ContextQueriesAPI->SetContextActor(ContextActor);
 	}
 
-	AccumMouseMove = FVector2D::ZeroVector;
 }
 
 
@@ -599,16 +600,6 @@ IToolsContextAssetAPI* URuntimeToolsFrameworkSubsystem::GetAssetAPI()
 	return ContextAssetAPI.Get();
 }
 
-
-void URuntimeToolsFrameworkSubsystem::AddMouseMoveX(float Delta)
-{
-	AccumMouseMove.X += Delta;
-}
-
-void URuntimeToolsFrameworkSubsystem::AddMouseMoveY(float Delta)
-{
-	AccumMouseMove.Y += Delta;
-}
 
 
 void URuntimeToolsFrameworkSubsystem::OnLeftMouseDown()
@@ -674,6 +665,12 @@ bool URuntimeToolsFrameworkSubsystem::HaveActiveTool()
 }
 
 
+UInteractiveTool* URuntimeToolsFrameworkSubsystem::GetActiveTool()
+{
+	return HaveActiveTool() ? ToolsContext->ToolManager->GetActiveTool(EToolSide::Mouse) : nullptr;
+}
+
+
 bool URuntimeToolsFrameworkSubsystem::IsActiveToolAcceptCancelType()
 {
 	return (ToolsContext != nullptr)
@@ -715,6 +712,8 @@ bool URuntimeToolsFrameworkSubsystem::AcceptActiveTool()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("URuntimeToolsFrameworkSubsystem::AcceptActiveTool - Tools Context is not initialized!"));
 	}
+
+	InternalConsistencyChecks();
 	return false;
 }
 
@@ -739,7 +738,22 @@ bool URuntimeToolsFrameworkSubsystem::CancelOrCompleteActiveTool()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("URuntimeToolsFrameworkSubsystem::CancelOrCompleteActiveTool - Tools Context is not initialized!"));
 	}
+
+	InternalConsistencyChecks();
 	return false;
+}
+
+
+
+void URuntimeToolsFrameworkSubsystem::InternalConsistencyChecks()
+{
+	if (GetSceneHistory())
+	{
+		if (!ensure(GetSceneHistory()->IsBuildingTransaction() == false))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[URuntimeToolsFrameworkSubsystem::InternalConsistencyChecks] still Building Transaction! Likely forgot to EndTransaction() somewhere!!"));
+		}
+	}
 }
 
 
@@ -758,11 +772,6 @@ TArray<UObject*> URuntimeToolsFrameworkSubsystem::GetActiveToolPropertySets()
 
 URuntimeMeshSceneObject* URuntimeToolsFrameworkSubsystem::ImportMeshSceneObject(const FString Path, bool bFlipOrientation)
 {
-	FActorSpawnParameters SpawnInfo;
-	ADynamicPMCActor* PMCActor = TargetWorld->SpawnActor<ADynamicPMCActor>(FVector::ZeroVector, FRotator(0,0,0), SpawnInfo);
-
-	PMCActor->SourceType = EDynamicMeshActorSourceType::ExternallyGenerated;
-
 	UGeneratedMesh* ImportMesh = NewObject<UGeneratedMesh>();
 	if (ImportMesh->ReadMeshFromFile(Path, bFlipOrientation) == false)
 	{
@@ -770,7 +779,7 @@ URuntimeMeshSceneObject* URuntimeToolsFrameworkSubsystem::ImportMeshSceneObject(
 	}
 
 	URuntimeMeshSceneObject* SceneObject = URuntimeMeshSceneSubsystem::Get()->CreateNewSceneObject();
-	SceneObject->Initialize(PMCActor, ImportMesh);
+	SceneObject->Initialize(TargetWorld, ImportMesh->GetMesh().Get());
 
 	return SceneObject;
 }

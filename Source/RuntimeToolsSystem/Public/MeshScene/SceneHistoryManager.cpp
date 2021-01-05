@@ -20,20 +20,30 @@ bool FChangeHistoryTransaction::HasExpired() const
 
 void USceneHistoryManager::BeginTransaction(const FText& Description)
 {
-	check(bBuildingTransaction == false);
+	if (BeginTransactionDepth != 0)
+	{
+		BeginTransactionDepth++;
+		return;
+	}
+	else
+	{
+		TruncateHistory();
 
-	TruncateHistory();
+		ActiveTransaction = FChangeHistoryTransaction();
+		ActiveTransaction.Description = Description;
 
-	ActiveTransaction = FChangeHistoryTransaction();
-	ActiveTransaction.Description = Description;
-
-	bBuildingTransaction = true;
+		BeginTransactionDepth++;
+	}
 }
 
 
 void USceneHistoryManager::EndTransaction()
 {
-	if (ensure(bBuildingTransaction))
+	if (ensure(BeginTransactionDepth > 0) == false) return;
+
+	BeginTransactionDepth--;
+
+	if (BeginTransactionDepth == 0)
 	{
 		if (ActiveTransaction.Records.Num() > 0)
 		{
@@ -45,7 +55,6 @@ void USceneHistoryManager::EndTransaction()
 		}
 
 		ActiveTransaction = FChangeHistoryTransaction();
-		bBuildingTransaction = false;
 
 		CurrentIndex = Transactions.Num();
 	}
@@ -65,7 +74,7 @@ void USceneHistoryManager::TruncateHistory()
 void USceneHistoryManager::AppendChange(UObject* TargetObject, TUniquePtr<FCommandChange> Change, const FText& Description)
 {
 	bool bAutoCloseTransaction = false;
-	if (ensure(bBuildingTransaction) == false)
+	if (ensure(BeginTransactionDepth > 0) == false)
 	{
 		BeginTransaction(Description);
 		bAutoCloseTransaction = true;

@@ -20,6 +20,9 @@
 #include "ConstrainedDelaunay2.h"
 
 #include "MeshComponentRuntimeUtils.h"
+#include "DynamicMeshOBJReader.h"
+
+#include "Engine/Engine.h"		// so that we can call GEngine->ForceGarbageCollection
 
 
 UGeneratedMesh::UGeneratedMesh()
@@ -85,6 +88,9 @@ bool UGeneratedMesh::ReadMeshFromFile(FString Path, bool bFlipOrientation)
 		UE_LOG(LogTemp, Warning, TEXT("Error reading mesh file %s"), *Path);
 		return false;
 	}
+
+	ImportedMesh.EnableAttributes();
+
 	*Mesh = MoveTemp(ImportedMesh);
 	ClearAppendTransform();
 	OnMeshUpdated();

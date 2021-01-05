@@ -1,6 +1,7 @@
 
 #include "RuntimeDrawPolygonTool.h"
 #include "RuntimeToolsFramework/RuntimeToolsFrameworkSubsystem.h"
+#include "MeshScene/RuntimeMeshSceneSubsystem.h"
 
 #include "Selection/ToolSelectionUtil.h"
 #include "AssetGenerationUtil.h"
@@ -14,6 +15,29 @@ UInteractiveTool* URuntimeDrawPolygonToolBuilder::BuildTool(const FToolBuilderSt
 	NewTool->SetAssetAPI(AssetAPI);
 	return NewTool;
 }
+
+
+
+
+
+
+void URuntimeDrawPolygonTool::Setup()
+{
+	UDrawPolygonTool::Setup();
+
+	// initialize to drawing material
+	this->MaterialProperties->Material = URuntimeMeshSceneSubsystem::Get()->StandardMaterial;
+
+	// mirror properties we want to expose at runtime 
+	RuntimeProperties = NewObject<URuntimeDrawPolygonToolProperties>(this);
+
+	RuntimeProperties->SelectedPolygonType = (int)PolygonProperties->PolygonType;
+	RuntimeProperties->WatchProperty(RuntimeProperties->SelectedPolygonType,
+		[this](int NewType) { PolygonProperties->PolygonType = (EDrawPolygonDrawMode)NewType; });
+
+	AddToolPropertySource(RuntimeProperties);
+}
+
 
 
 

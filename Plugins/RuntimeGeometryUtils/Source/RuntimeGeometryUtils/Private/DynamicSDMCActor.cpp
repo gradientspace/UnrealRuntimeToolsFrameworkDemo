@@ -2,11 +2,12 @@
 #include "MeshComponentRuntimeUtils.h"
 #include "DynamicMesh3.h"
 #include "Operations/MeshConvexHull.h"
+#include "Materials/Material.h"
+
 
 // Sets default values
 ADynamicSDMCActor::ADynamicSDMCActor()
 {
-	//MeshComponent = CreateDefaultSubobject<USimpleDynamicMeshComponent>(TEXT("MeshComponent"), false);
 	MeshComponent = CreateDefaultSubobject<URuntimeDynamicMeshComponent>(TEXT("MeshComponent"), false);
 	SetRootComponent(MeshComponent);
 }
@@ -70,8 +71,6 @@ void ADynamicSDMCActor::UpdateSDMCMesh()
 		// update material
 		UMaterialInterface* UseMaterial = (this->Material != nullptr) ? this->Material : UMaterial::GetDefaultMaterial(MD_Surface);
 		MeshComponent->SetMaterial(0, UseMaterial);
-
-
 	}
 }
 

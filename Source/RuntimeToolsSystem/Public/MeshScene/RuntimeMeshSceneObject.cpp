@@ -19,6 +19,9 @@ URuntimeMeshSceneObject::URuntimeMeshSceneObject()
 	{
 		MeshAABBTree = MakeUnique<FDynamicMeshAABBTree3>();
 	}
+
+	UMaterialInterface* DefaultMaterial = UMaterial::GetDefaultMaterial(MD_Surface);
+	Materials.Add(DefaultMaterial);
 }
 
 
@@ -41,6 +44,32 @@ void URuntimeMeshSceneObject::Initialize(UWorld* TargetWorld, const FMeshDescrip
 	{
 		MeshToEdit = *SourceMesh;
 	});
+
+	UpdateComponentMaterials(false);
+}
+
+void URuntimeMeshSceneObject::Initialize(UWorld* TargetWorld, const FDynamicMesh3* InitialMesh)
+{
+	FActorSpawnParameters SpawnInfo;
+	SimpleDynamicMeshActor = TargetWorld->SpawnActor<ADynamicSDMCActor>(FVector::ZeroVector, FRotator(0, 0, 0), SpawnInfo);
+
+	// listen for changes
+	SimpleDynamicMeshActor->MeshComponent->OnMeshChanged.AddLambda([this]() {
+		OnExternalDynamicMeshComponentUpdate();
+	});
+
+	GetActor()->SourceType = EDynamicMeshActorSourceType::ExternallyGenerated;
+	GetActor()->CollisionMode = EDynamicMeshActorCollisionMode::ComplexAsSimpleAsync;
+
+	*SourceMesh = *InitialMesh;
+	MeshAABBTree->SetMesh(SourceMesh.Get(), true);
+
+	GetActor()->EditMesh([&](FDynamicMesh3& MeshToEdit)
+	{
+		MeshToEdit = *SourceMesh;
+	});
+
+	UpdateComponentMaterials(false);
 }
 
 
@@ -65,32 +94,38 @@ ADynamicMeshBaseActor* URuntimeMeshSceneObject::GetActor()
 
 UMeshComponent* URuntimeMeshSceneObject::GetMeshComponent()
 {
-	return SimpleDynamicMeshActor->MeshComponent;
+	return (SimpleDynamicMeshActor) ? SimpleDynamicMeshActor->MeshComponent : nullptr;
 }
 
 
-void URuntimeMeshSceneObject::Initialize(ADynamicPMCActor* Actor, UGeneratedMesh* NewMesh)
+
+void URuntimeMeshSceneObject::CopyMaterialsFromComponent()
 {
-	//const FDynamicMesh3* InitialMesh = NewMesh->GetMesh().Get();
+	UMeshComponent* Component = GetMeshComponent();
+	int32 NumMaterials = Component->GetNumMaterials();
+	if (NumMaterials == 0)
+	{
+		Materials = { UMaterial::GetDefaultMaterial(MD_Surface) };
+	}
+	else
+	{
+		Materials.SetNum(NumMaterials);
+		for (int32 k = 0; k < NumMaterials; ++k)
+		{
+			Materials[k] = Component->GetMaterial(k);
+		}
+	}
+}
 
-	//if (!this->MeshDescription)
-	//{
-	//	this->MeshDescription = MakePimpl<FMeshDescription>();
-	//	FStaticMeshAttributes StaticMeshAttributes(*this->MeshDescription);
-	//	StaticMeshAttributes.Register();
-	//}
 
-
-	//FDynamicMeshToMeshDescription Converter;
-	//Converter.Convert(InitialMesh, *this->MeshDescription);
-
-	//UpdateDynamicMeshFromMeshDescription();
-
-	//ProcMeshActor = Actor;
-	//ProcMeshActor->EditMesh([&](FDynamicMesh3& MeshToEdit)
-	//{
-	//	MeshToEdit = *SourceMesh;
-	//});
+void URuntimeMeshSceneObject::SetAllMaterials(UMaterialInterface* SetToMaterial)
+{
+	int32 NumMaterials = Materials.Num();
+	for (int32 k = 0; k < NumMaterials; ++k)
+	{
+		Materials[k] = SetToMaterial;
+	}
+	UpdateComponentMaterials(true);
 }
 
 
@@ -109,17 +144,29 @@ void URuntimeMeshSceneObject::SetToHighlightMaterial(UMaterialInterface* Materia
 
 void URuntimeMeshSceneObject::ClearHighlightMaterial()
 {
+	UpdateComponentMaterials(true);
+}
+
+
+void URuntimeMeshSceneObject::UpdateComponentMaterials(bool bForceRefresh)
+{
 	UMaterialInterface* DefaultMaterial = UMaterial::GetDefaultMaterial(MD_Surface);
 
 	UMeshComponent* Component = GetMeshComponent();
+	if (!Component) return;
+
 	int32 NumMaterials = FMath::Max(1, Component->GetNumMaterials());
 	for (int32 k = 0; k < NumMaterials; ++k)
 	{
-		Component->SetMaterial(k, DefaultMaterial);
+		UMaterialInterface* SetMaterial = (k < Materials.Num()) ? Materials[k] : DefaultMaterial;
+		Component->SetMaterial(k, SetMaterial);
 	}
 
 	// HACK TO FORCE MATERIAL UPDATE IN SDMC
-	SimpleDynamicMeshActor->MeshComponent->NotifyMeshUpdated();
+	if (bForceRefresh)
+	{
+		SimpleDynamicMeshActor->MeshComponent->NotifyMeshUpdated();
+	}
 }
 
 

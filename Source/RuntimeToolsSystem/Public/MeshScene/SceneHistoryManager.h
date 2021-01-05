@@ -77,7 +77,7 @@ public:
 
 	/** @return true if we are inside an open Transaction */
 	UFUNCTION(BlueprintCallable)
-	bool IsBuildingTransaction() const { return bBuildingTransaction;  }
+	bool IsBuildingTransaction() const { return BeginTransactionDepth > 0;  }
 
 	/** Roll back in History to previous state by Revert()'ing intermediate Changes */
 	UFUNCTION(BlueprintCallable)
@@ -107,7 +107,8 @@ protected:
 	UPROPERTY()
 	FChangeHistoryTransaction ActiveTransaction;
 
-	bool bBuildingTransaction = false;
+
+	int BeginTransactionDepth = 0;
 };
 
 

@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -7,7 +5,6 @@
 #include "ToolsContextActor.generated.h"
 
 class URuntimeToolsFrameworkSubsystem;
-//class AToolsFrameworkPlayerController;
 
 UENUM()
 enum class EToolActorInteractionMode : uint8
@@ -73,9 +70,12 @@ protected:
 	virtual void OnAltKeyDown();
 	virtual void OnAltKeyUp();
 
-
 	virtual void OnToolAccept();
 	virtual void OnToolExit();
+
+	virtual void OnDelete();
+	virtual void OnUndo();
+	virtual void OnRedo();
 
 	virtual void OnMoveForwardKeyAxis(float MoveDelta);
 	virtual void OnMoveRightKeyAxis(float MoveDelta);

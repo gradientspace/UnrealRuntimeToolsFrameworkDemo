@@ -1,9 +1,6 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "ToolsContextActor.h"
 #include "RuntimeToolsFrameworkSubsystem.h"
-//#include "ToolsFrameworkPlayerController.h"
+#include "MeshScene/RuntimeMeshSceneSubsystem.h"
 #include "InputCoreTypes.h"
 #include "GameFramework/PlayerInput.h"
 #include "Components/InputComponent.h"
@@ -47,7 +44,7 @@ void AToolsContextActor::Tick(float DeltaTime)
 
 }
 
-// Called to bind functionality to input
+
 void AToolsContextActor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// do not want default player input behavior
@@ -95,6 +92,14 @@ void AToolsContextActor::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	InputComponent->BindAction("ActiveToolAccept", IE_Released, this, &AToolsContextActor::OnToolAccept);
 	// generally bound to escape
 	InputComponent->BindAction("ActiveToolExit", IE_Released, this, &AToolsContextActor::OnToolExit);
+
+	// generally bound to ctrl+z
+	InputComponent->BindAction("UndoAction", IE_Released, this, &AToolsContextActor::OnUndo);
+	// generally bound to ctrl+y
+	InputComponent->BindAction("RedoAction", IE_Released, this, &AToolsContextActor::OnRedo);
+
+	// generally bound to delete
+	InputComponent->BindAction("DeleteAction", IE_Released, this, &AToolsContextActor::OnDelete);
 }
 
 
@@ -273,7 +278,6 @@ void AToolsContextActor::OnMouseMoveX(float MoveX)
 	}
 	else
 	{
-		ToolsSystem->AddMouseMoveX(MoveX);
 	}
 }
 
@@ -302,7 +306,6 @@ void AToolsContextActor::OnMouseMoveY(float MoveY)
 	}
 	else
 	{
-		ToolsSystem->AddMouseMoveY(MoveY);
 	}
 }
 
@@ -344,6 +347,23 @@ void AToolsContextActor::OnToolExit()
 	ToolsSystem->CancelOrCompleteActiveTool();
 }
 
+void AToolsContextActor::OnUndo()
+{
+	ToolsSystem->GetSceneHistory()->Undo();
+}
+
+void AToolsContextActor::OnRedo()
+{
+	ToolsSystem->GetSceneHistory()->Redo();
+}
+
+void AToolsContextActor::OnDelete()
+{
+	if (ToolsSystem->HaveActiveTool() == false)
+	{
+		URuntimeMeshSceneSubsystem::Get()->DeleteSelectedSceneObjects();
+	}
+}
 
 
 

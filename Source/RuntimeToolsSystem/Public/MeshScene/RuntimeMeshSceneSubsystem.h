@@ -43,9 +43,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	URuntimeMeshSceneObject* CreateNewSceneObject();
 
+	UFUNCTION(BlueprintCallable)
+	URuntimeMeshSceneObject* FindSceneObjectByActor(AActor* Actor);
 
 	UFUNCTION(BlueprintCallable)
 	bool DeleteSceneObject(URuntimeMeshSceneObject* Object);
+
+	UFUNCTION(BlueprintCallable)
+	bool DeleteSelectedSceneObjects();
+
+	bool DeleteSelectedSceneObjects(AActor* SkipActor);
 
 
 public:
@@ -92,7 +99,6 @@ protected:
 	UPROPERTY()
 	TArray<URuntimeMeshSceneObject*> SelectedSceneObjects;
 
-
 	void SetSelectionInternal(const TArray<URuntimeMeshSceneObject*>& SceneObjects);
 	
 	TUniquePtr<FMeshSceneSelectionChange> ActiveSelectionChange;
@@ -129,6 +135,7 @@ public:
 	URuntimeMeshSceneObject* SceneObject;
 	bool bAdded = true;
 
+public:
 	virtual void Apply(UObject* Object) override;
 	virtual void Revert(UObject* Object) override;
 	virtual FString ToString() const override { return TEXT("FAddRemoveSceneObjectChange"); }
