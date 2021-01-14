@@ -10,7 +10,14 @@ class FMeshSceneSelectionChange;
 class FAddRemoveSceneObjectChange;
 
 /**
+ * URuntimeMeshSceneSubsystem manages a "Scene" of "SceneObjects", currently only URuntimeMeshSceneObject (SO).
  *
+ * Use CreateNewSceneObject() to create a new SO, and the various Delete functions to remove them.
+ * These changes will be undo-able, ie they will send Change events to the USceneHistoryManager instance.
+ * 
+ * An active Selection Set is tracked, and there are API functions for modifying this Selection set, also undo-able.
+ * 
+ * Cast rays into the scene using FindNearestHitObject()
  */
 UCLASS()
 class RUNTIMETOOLSSYSTEM_API URuntimeMeshSceneSubsystem : public UGameInstanceSubsystem

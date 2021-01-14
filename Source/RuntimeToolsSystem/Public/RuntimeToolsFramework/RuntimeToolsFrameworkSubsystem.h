@@ -27,7 +27,10 @@ class RUNTIMETOOLSSYSTEM_API URuntimeToolsFrameworkSubsystem : public UGameInsta
 {
 	GENERATED_BODY()
 	
-
+	//
+	// Small hack to workaround the fact that you generally need the UGameInstance pointer to
+	// look up a GameInstance subsystem. We store the pointer and then allow ::Get() to return it (ie actually a Singleton)
+	//
 public:
 	static void InitializeSingleton(URuntimeToolsFrameworkSubsystem* Subsystem);
 	static URuntimeToolsFrameworkSubsystem* Get();
@@ -35,21 +38,39 @@ protected:
 	static URuntimeToolsFrameworkSubsystem* InstanceSingleton;
 
 
+	//
+	// UGameInstanceSubsystem API implementation
+	//
 public:
 	virtual void Deinitialize() override;
 
 
+	//
+	// Functions to setup/shutdown/operate the RuntimeToolsFramework
+	//
 public:
-
 	void InitializeToolsContext(UWorld* TargetWorld);
 	void ShutdownToolsContext();
-
 	void SetContextActor(AToolsContextActor* ActorIn);
-
 	virtual void Tick(float DeltaTime);
 
-	IToolsContextTransactionsAPI* GetTransactionsAPI();
 
+	//
+	// Access to various data structures created/tracked by the Subsystem
+	//
+
+	IToolsContextTransactionsAPI* GetTransactionsAPI();
+	IToolsContextAssetAPI* GetAssetAPI();
+
+	UFUNCTION(BlueprintCallable)
+	USceneHistoryManager* GetSceneHistory() { return SceneHistory;  }
+
+	TArray<UObject*> GetActiveToolPropertySets();
+
+
+	//
+	// Tool creation/management BP API
+	//
 
 	UFUNCTION(BlueprintCallable)
 	bool CanActivateToolByName(FString Name);
@@ -76,18 +97,11 @@ public:
 	bool CancelOrCompleteActiveTool();
 
 
-	UFUNCTION(BlueprintCallable)
-	TArray<UObject*> GetActiveToolPropertySets();
 
 
-
-	UFUNCTION(BlueprintCallable)
-	URuntimeMeshSceneObject* ImportMeshSceneObject(const FString Path, bool bFlipOrientation);
-
-
-	UFUNCTION(BlueprintCallable)
-	USceneHistoryManager* GetSceneHistory() { return SceneHistory;  }
-
+	//
+	// Support for tracking World/Local coordinate system global state
+	//
 
 	UPROPERTY()
 	EToolContextCoordinateSystem CurrentCoordinateSystem = EToolContextCoordinateSystem::World;
@@ -103,6 +117,28 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool IsWorldCoordinateSystem() { return CurrentCoordinateSystem == EToolContextCoordinateSystem::World; }
+
+
+
+	//
+	// random utility BP functions
+	//
+
+	UFUNCTION(BlueprintCallable)
+	URuntimeMeshSceneObject* ImportMeshSceneObject(const FString Path, bool bFlipOrientation);
+
+
+
+	//
+	// mouse state queries/functions
+	//
+
+public:
+	UFUNCTION(BlueprintCallable)
+	bool IsCapturingMouse() const;
+protected:
+	void OnLeftMouseDown();
+	void OnLeftMouseUp();
 
 
 public:
@@ -131,48 +167,38 @@ public:
 	USceneHistoryManager* SceneHistory;
 
 
-public:
-	UFUNCTION(BlueprintCallable)
-	bool IsCapturingMouse() const;
-
-
-	IToolsContextAssetAPI* GetAssetAPI();
-
-
 protected:
 	TSharedPtr<FRuntimeToolsContextQueriesImpl> ContextQueriesAPI;
 	TSharedPtr<FRuntimeToolsContextTransactionImpl> ContextTransactionsAPI;
 	TSharedPtr<FRuntimeToolsContextAssetImpl> ContextAssetAPI;
+
+	void InternalConsistencyChecks();
+	bool bIsShuttingDown = false;
 
 	void OnToolStarted(UInteractiveToolManager* Manager, UInteractiveTool* Tool);
 	void OnToolEnded(UInteractiveToolManager* Manager, UInteractiveTool* Tool);
 
 	void OnSceneHistoryStateChange();
 
-public:
-	// input handling
-	void OnLeftMouseDown();
-	void OnLeftMouseUp();
 
-protected:
+	// mouse things
+
+	friend class AToolsContextActor;
+
 	FVector2D PrevMousePosition = FVector2D::ZeroVector;
 
 	FInputDeviceState CurrentMouseState;
 	bool bPendingMouseStateChange = false;
 
-	void ProcessAccumulatedMouseInput();
-
 	FViewCameraState CurrentViewCameraState;
 
-	void InternalConsistencyChecks();
-	bool bIsShuttingDown = false;
 
+	// property set keepalive hack
 
-public:
 	void AddPropertySetKeepalive(UInteractiveToolPropertySet* PropertySet);
 	void AddAllPropertySetKeepalives(UInteractiveTool* Tool);
 
-protected:
 	UPROPERTY()
 	TArray<UObject*> PropertySetKeepAlives;
+
 };

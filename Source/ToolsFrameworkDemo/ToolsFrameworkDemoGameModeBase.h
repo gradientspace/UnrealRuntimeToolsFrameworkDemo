@@ -27,6 +27,7 @@ public:
 	virtual void InitializeToolsSystem();
 	virtual void ShutdownToolsSystem();
 
+	virtual void RegisterTools();
 
 	UPROPERTY()
 	URuntimeToolsFrameworkSubsystem* ToolsSystem;

@@ -213,9 +213,7 @@ public:
 
 		URuntimeMeshSceneObject* SceneObject = URuntimeMeshSceneSubsystem::Get()->CreateNewSceneObject();
 		SceneObject->Initialize(TargetWorld, AssetConfig.MeshDescription.Get());
-
 		SceneObject->SetTransform(Transform);
-
 		return SceneObject->GetActor();
 	}
 
@@ -384,7 +382,7 @@ bool URuntimeToolsFrameworkSubsystem::IsCapturingMouse() const
 
 
 
-class FRuntimeToolsFrameworkRenderAPI : public IToolsContextRenderAPI
+class FRuntimeToolsFrameworkRenderImpl : public IToolsContextRenderAPI
 {
 public:
 	UToolsContextRenderComponent* RenderComponent;
@@ -392,7 +390,7 @@ public:
 	const FSceneView* SceneView;
 	FViewCameraState ViewCameraState;
 
-	FRuntimeToolsFrameworkRenderAPI(UToolsContextRenderComponent* RenderComponentIn, const FSceneView* ViewIn, FViewCameraState CameraState)
+	FRuntimeToolsFrameworkRenderImpl(UToolsContextRenderComponent* RenderComponentIn, const FSceneView* ViewIn, FViewCameraState CameraState)
 		: RenderComponent(RenderComponentIn), SceneView(ViewIn), ViewCameraState(CameraState)
 	{
 		PDI = RenderComponentIn->GetPDIForView(ViewIn);
@@ -474,9 +472,6 @@ void URuntimeToolsFrameworkSubsystem::Tick(float DeltaTime)
 			return;		// abort abort
 		}
 
-		//FVector Location;
-		//FRotator Rotation;
-		//ContextActor->GetActorEyesViewPoint(Location, Rotation);
 		CurrentViewCameraState.Position = ViewLocation;
 		CurrentViewCameraState.Orientation = ViewRotation.Quaternion();
 		CurrentViewCameraState.HorizontalFOVDegrees = SceneView->FOV;
@@ -508,13 +503,6 @@ void URuntimeToolsFrameworkSubsystem::Tick(float DeltaTime)
 
 		// fudge factor so we don't hit actor...
 		Origin += 1.0 * Direction;
-
-		//FVector EyeLocation;
-		//FRotator EyeRotation;
-		//ContextActor->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-		//UE_LOG(LogTemp, Warning, TEXT("Eye Origin (%f,%f,%f)   Rotation (%f,%f,%f)"),
-		//	EyeLocation.X, EyeLocation.Y, EyeLocation.Z, EyeRotation.Pitch, EyeRotation.Yaw, EyeRotation.Roll);
-
 
 		InputState.Mouse.Position2D = ViewportMousePos;
 		InputState.Mouse.Delta2D = CurrentMouseState.Mouse.Position2D - PrevMousePosition;
@@ -559,7 +547,7 @@ void URuntimeToolsFrameworkSubsystem::Tick(float DeltaTime)
 		ToolsContext->GizmoManager->Tick(DeltaTime);
 
 		// render things
-		FRuntimeToolsFrameworkRenderAPI RenderAPI(PDIRenderComponent, SceneView, CurrentViewCameraState);
+		FRuntimeToolsFrameworkRenderImpl RenderAPI(PDIRenderComponent, SceneView, CurrentViewCameraState);
 		ToolsContext->ToolManager->Render(&RenderAPI);
 		ToolsContext->GizmoManager->Render(&RenderAPI);
 
@@ -614,10 +602,6 @@ void URuntimeToolsFrameworkSubsystem::OnLeftMouseUp()
 	bPendingMouseStateChange = true;
 }
 
-void URuntimeToolsFrameworkSubsystem::ProcessAccumulatedMouseInput()
-{
-
-}
 
 
 bool URuntimeToolsFrameworkSubsystem::CanActivateToolByName(FString Name)
@@ -815,7 +799,6 @@ void URuntimeToolsFrameworkSubsystem::AddAllPropertySetKeepalives(UInteractiveTo
 }
 
 
-PRAGMA_DISABLE_OPTIMIZATION
 void URuntimeToolsFrameworkSubsystem::AddPropertySetKeepalive(UInteractiveToolPropertySet* PropertySet)
 {
 	if (ensure(PropertySet != nullptr))
@@ -847,4 +830,4 @@ void URuntimeToolsFrameworkSubsystem::AddPropertySetKeepalive(UInteractiveToolPr
 		}
 	}
 }
-PRAGMA_ENABLE_OPTIMIZATION
+

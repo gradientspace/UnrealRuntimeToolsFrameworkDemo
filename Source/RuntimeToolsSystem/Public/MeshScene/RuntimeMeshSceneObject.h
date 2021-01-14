@@ -14,27 +14,41 @@
 
 struct FMeshDescription;
 
+/**
+ * URuntimeMeshSceneObject is a "Scene Object" in the "Scene". Do not create these yourself.
+ * Use the functions in URuntimeMeshSceneSubsystem to create and manage SceneObjects.
+ * 
+ * Conceptually, URuntimeMeshSceneObject is a triangle mesh object that can be selected,
+ * transformed, and edited using mesh editing tools. 
+ * 
+ * Under the hood, URuntimeMeshSceneObject will spawn a ADynamicSDMCActor to actually implement
+ * most of that functionality. But, the premise is that the higher level Scene is not aware
+ * of those details.
+ */
 UCLASS()
 class RUNTIMETOOLSSYSTEM_API URuntimeMeshSceneObject : public UObject
 {
 	GENERATED_BODY()
 
 public:
-
 	URuntimeMeshSceneObject();
 
 	void Initialize(UWorld* TargetWorld, const FMeshDescription* InitialMeshDescription);
 	void Initialize(UWorld* TargetWorld, const FDynamicMesh3* InitialMesh);
 
-
+	// set the 3D transform of this SceneObject
 	void SetTransform(FTransform Transform);
 
-
+	// get the Actor that represents this SceneObject
 	ADynamicMeshBaseActor* GetActor();
+
+	// get the mesh component that represents this SceneObject
 	UMeshComponent* GetMeshComponent();
 
-	UPROPERTY()
-	ADynamicSDMCActor* SimpleDynamicMeshActor = nullptr;
+
+	//
+	// Material functions
+	//
 
 	UFUNCTION(BlueprintCallable, Category = "RuntimeMeshSceneObject")
 	void CopyMaterialsFromComponent();
@@ -49,10 +63,18 @@ public:
 	void ClearHighlightMaterial();
 
 
+	//
+	// Spatial Query functions
+	//
+
 	UFUNCTION(BlueprintCallable, Category = "RuntimeMeshSceneObject")
 	bool IntersectRay(FVector RayOrigin, FVector RayDirection, FVector& WorldHitPoint, float& HitDistance, int& NearestTriangle, FVector& TriBaryCoords, float MaxDistance = 0);
 
 
+protected:
+	// URuntimeMeshSceneObject's representation in UE Level is a ADynamicSDMCActor
+	UPROPERTY()
+	ADynamicSDMCActor* SimpleDynamicMeshActor = nullptr;
 
 protected:
 

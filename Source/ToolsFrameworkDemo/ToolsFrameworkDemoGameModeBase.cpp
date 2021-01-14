@@ -49,9 +49,13 @@ void AToolsFrameworkDemoGameModeBase::InitializeToolsSystem()
 	ToolsSystem->InitializeToolsContext(World);
 	SceneSystem->SetCurrentTransactionsAPI(ToolsSystem->GetTransactionsAPI());
 
-	UInteractiveToolManager* ToolManager = ToolsSystem->ToolsContext->ToolManager;
+	RegisterTools();
+}
 
-	// register various tools
+
+void AToolsFrameworkDemoGameModeBase::RegisterTools()
+{
+	UInteractiveToolManager* ToolManager = ToolsSystem->ToolsContext->ToolManager;
 
 	auto AddPrimitiveToolBuilder = NewObject<UAddPrimitiveToolBuilder>();
 	AddPrimitiveToolBuilder->AssetAPI = ToolsSystem->GetAssetAPI();

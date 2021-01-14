@@ -51,8 +51,8 @@ FInputRayHit USceneObjectSelectionInteraction::IsHitByClick(const FInputDeviceRa
 	{
 		RayHit.bHit = true;
 		RayHit.HitDepth = HitDist;
-		//RayHit.HitNormal = ;
-		//RayHit.bHasHitNormal = ;
+		//RayHit.HitNormal = ;			// todo - can compute from bary coords
+		//RayHit.bHasHitNormal = ;		// todo - can compute from bary coords
 		RayHit.HitIdentifier = HitTri;
 		RayHit.HitOwner = HitObject;
 	}
