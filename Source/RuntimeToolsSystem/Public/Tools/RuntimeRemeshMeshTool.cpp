@@ -23,8 +23,7 @@ void URuntimeRemeshMeshTool::Setup()
 	URemeshMeshTool::Setup();
 
 	// disable wireframe because it crashes at runtime
-	this->BasicProperties->bShowWireframe = false;
-
+	//this->BasicProperties->bShowWireframe = false;
 
 	// mirror properties we want to expose at runtime 
 	RuntimeProperties = NewObject<URuntimeRemeshMeshToolProperties>(this);

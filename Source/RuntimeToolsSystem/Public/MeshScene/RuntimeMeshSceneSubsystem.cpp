@@ -20,6 +20,11 @@ void URuntimeMeshSceneSubsystem::InitializeSingleton(URuntimeMeshSceneSubsystem*
 
 	UMaterial* SelectionMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/RuntimeToolsFrameworkMaterials/SelectedMaterial"));
 	InstanceSingleton->SelectedMaterial = (SelectionMaterial) ? SelectionMaterial : UMaterial::GetDefaultMaterial(MD_Surface);
+
+	UMaterial* WireframeMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/RuntimeToolsFrameworkMaterials/WireframeMaterial"));
+	WireframeMaterial = (WireframeMaterial) ? WireframeMaterial : UMaterial::GetDefaultMaterial(MD_Surface);
+	InstanceSingleton->WireframeMaterial = WireframeMaterial;
+	GEngine->WireframeMaterial = WireframeMaterial;
 }
 
 

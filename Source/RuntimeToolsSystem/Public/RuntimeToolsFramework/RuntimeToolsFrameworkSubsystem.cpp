@@ -754,10 +754,16 @@ TArray<UObject*> URuntimeToolsFrameworkSubsystem::GetActiveToolPropertySets()
 
 
 
-URuntimeMeshSceneObject* URuntimeToolsFrameworkSubsystem::ImportMeshSceneObject(const FString Path, bool bFlipOrientation)
+URuntimeMeshSceneObject* URuntimeToolsFrameworkSubsystem::ImportMeshSceneObject(const FString ImportPath, bool bFlipOrientation)
 {
+	FString UsePath = ImportPath;
+	if (FPaths::FileExists(UsePath) == false && FPaths::IsRelative(UsePath))
+	{
+		UsePath = FPaths::ProjectContentDir() + ImportPath;
+	}
+
 	UGeneratedMesh* ImportMesh = NewObject<UGeneratedMesh>();
-	if (ImportMesh->ReadMeshFromFile(Path, bFlipOrientation) == false)
+	if (ImportMesh->ReadMeshFromFile(UsePath, bFlipOrientation) == false)
 	{
 		ImportMesh->AppendSphere(200, 8, 8);
 	}

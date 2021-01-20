@@ -13,6 +13,7 @@ void URuntimeMeshBooleanTool::Setup()
 {
 	UCSGMeshesTool::Setup();
 
+	this->CSGProperties->bAttemptFixHoles = true;
 	// write to first input asset
 	this->HandleSourcesProperties->WriteOutputTo = EBaseCreateFromSelectedTargetType::FirstInputAsset;
 

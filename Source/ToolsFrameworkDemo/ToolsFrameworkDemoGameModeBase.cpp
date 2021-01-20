@@ -6,13 +6,13 @@
 #include "AddPrimitiveTool.h"
 #include "DrawAndRevolveTool.h"
 #include "MeshVertexSculptTool.h"
-#include "EditMeshPolygonsTool.h"
 #include "PlaneCutTool.h"
 
 #include "Tools/RuntimeDrawPolygonTool.h"
 #include "Tools/RuntimeDynamicMeshSculptTool.h"
 #include "Tools/RuntimeRemeshMeshTool.h"
 #include "Tools/RuntimeMeshBooleanTool.h"
+#include "Tools/RuntimePolyEditTool.h"
 
 
 AToolsFrameworkDemoGameModeBase::AToolsFrameworkDemoGameModeBase()
@@ -70,8 +70,8 @@ void AToolsFrameworkDemoGameModeBase::RegisterTools()
 	PolyRevolveToolBuilder->AssetAPI = ToolsSystem->GetAssetAPI();
 	ToolManager->RegisterToolType("PolyRevolve", PolyRevolveToolBuilder);
 
-	auto EditMeshPolygonsToolBuilder = NewObject<UEditMeshPolygonsToolBuilder>();
-	ToolManager->RegisterToolType("EditPolygons", EditMeshPolygonsToolBuilder);
+	auto PolyEditToolBuilder = NewObject<URuntimePolyEditToolBuilder>();
+	ToolManager->RegisterToolType("EditPolygons", PolyEditToolBuilder);
 
 	auto MeshPlaneCutToolBuilder = NewObject<UPlaneCutToolBuilder>();
 	MeshPlaneCutToolBuilder->AssetAPI = ToolsSystem->GetAssetAPI();
