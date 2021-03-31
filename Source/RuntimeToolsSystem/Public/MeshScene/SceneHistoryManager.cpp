@@ -113,7 +113,10 @@ void USceneHistoryManager::Undo()
 		const TArray<FChangeHistoryRecord>& Records = Transactions[CurrentIndex].Records;
 		for (int32 k = Records.Num() - 1; k >= 0; --k)
 		{
-			Records[k].ChangeWrapper->Change->Revert(Records[k].TargetObject);
+			if (Records[k].TargetObject)
+			{
+				Records[k].ChangeWrapper->Change->Revert(Records[k].TargetObject);
+			}
 			NumReverted++;
 		}
 
@@ -140,7 +143,10 @@ void USceneHistoryManager::Redo()
 		const TArray<FChangeHistoryRecord>& Records = Transactions[CurrentIndex].Records;
 		for (int32 k = 0; k < Records.Num(); ++k)
 		{
-			Records[k].ChangeWrapper->Change->Apply(Records[k].TargetObject);
+			if (Records[k].TargetObject)
+			{
+				Records[k].ChangeWrapper->Change->Apply(Records[k].TargetObject);
+			}
 			++NumApplied;
 		}
 
