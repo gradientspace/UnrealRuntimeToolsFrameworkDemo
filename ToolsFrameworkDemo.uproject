@@ -21,6 +21,18 @@
 		{
 			"Name": "ModelingToolsEditorMode",
 			"Enabled": true
+		},
+		{
+			"Name": "SampleToolsEditorMode",
+			"Enabled": true
+		},
+		{
+			"Name": "RuntimeGeometryUtils",
+			"Enabled": true
+		},
+		{
+			"Name": "RuntimeToolsSystem",
+			"Enabled": true
 		}
 	]
 }
