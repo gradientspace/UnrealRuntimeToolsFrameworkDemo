@@ -51,19 +51,18 @@ void AToolsContextActor::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	//Super::SetupPlayerInputComponent(PlayerInputComponent);
 	
 	// only allow these keys if RMB is down?
-	UPlayerInput::AddEngineDefinedAxisMapping(FInputAxisKeyMapping("TFPawn_MoveForward", EKeys::W, 1.f));
-	UPlayerInput::AddEngineDefinedAxisMapping(FInputAxisKeyMapping("TFPawn_MoveForward", EKeys::S, -1.f));
-	UPlayerInput::AddEngineDefinedAxisMapping(FInputAxisKeyMapping("TFPawn_MoveRight", EKeys::A, -1.f));
-	UPlayerInput::AddEngineDefinedAxisMapping(FInputAxisKeyMapping("TFPawn_MoveRight", EKeys::D, 1.f));
-	UPlayerInput::AddEngineDefinedAxisMapping(FInputAxisKeyMapping("TFPawn_MoveUp", EKeys::E, 1.f));
-	UPlayerInput::AddEngineDefinedAxisMapping(FInputAxisKeyMapping("TFPawn_MoveUp", EKeys::Q, -1.f));
+	PlayerController->PlayerInput->AddAxisMapping(FInputAxisKeyMapping("TFPawn_MoveForward", EKeys::W, 1.f));
+	PlayerController->PlayerInput->AddAxisMapping(FInputAxisKeyMapping("TFPawn_MoveForward", EKeys::S, -1.f));
+	PlayerController->PlayerInput->AddAxisMapping(FInputAxisKeyMapping("TFPawn_MoveRight", EKeys::D, 1.f));
+	PlayerController->PlayerInput->AddAxisMapping(FInputAxisKeyMapping("TFPawn_MoveRight", EKeys::A, -1.f));
+	PlayerController->PlayerInput->AddAxisMapping(FInputAxisKeyMapping("TFPawn_MoveUp", EKeys::E, 1.f));
+	PlayerController->PlayerInput->AddAxisMapping(FInputAxisKeyMapping("TFPawn_MoveUp", EKeys::Q, -1.f));
 	PlayerInputComponent->BindAxis("TFPawn_MoveForward", this, &AToolsContextActor::OnMoveForwardKeyAxis);
 	PlayerInputComponent->BindAxis("TFPawn_MoveRight", this, &AToolsContextActor::OnMoveRightKeyAxis);
 	PlayerInputComponent->BindAxis("TFPawn_MoveUp", this, &AToolsContextActor::OnMoveUpKeyAxis);
 
-
-	UPlayerInput::AddEngineDefinedActionMapping(FInputActionKeyMapping("StandardAltButton", EKeys::LeftAlt));
-	UPlayerInput::AddEngineDefinedActionMapping(FInputActionKeyMapping("StandardAltButton", EKeys::RightAlt));
+	PlayerController->PlayerInput->AddActionMapping(FInputActionKeyMapping("StandardAltButton", EKeys::LeftAlt));
+	PlayerController->PlayerInput->AddActionMapping(FInputActionKeyMapping("StandardAltButton", EKeys::RightAlt));
 	PlayerInputComponent->BindAction("StandardAltButton", IE_Pressed, this, &AToolsContextActor::OnAltKeyDown);
 	PlayerInputComponent->BindAction("StandardAltButton", IE_Released, this, &AToolsContextActor::OnAltKeyUp);
 
@@ -73,32 +72,43 @@ void AToolsContextActor::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	//UPlayerInput::AddEngineDefinedActionMapping(FInputActionKeyMapping("StandardLeftMouseButton", EKeys::LeftMouseButton));
 	//PlayerInputComponent->BindAction("StandardMouseLeftButton", IE_Pressed, this, &AToolsContextActor::OnLeftMouseDown);
 	//PlayerInputComponent->BindAction("StandardMouseLeftButton", IE_Released, this, &AToolsContextActor::OnLeftMouseUp);
+	PlayerController->PlayerInput->AddActionMapping(FInputActionKeyMapping("LeftMouseButtonAction", EKeys::LeftMouseButton));
 	PlayerInputComponent->BindAction("LeftMouseButtonAction", IE_Pressed, this, &AToolsContextActor::OnLeftMouseDown);
 	PlayerInputComponent->BindAction("LeftMouseButtonAction", IE_Released, this, &AToolsContextActor::OnLeftMouseUp);
 
 
-	UPlayerInput::AddEngineDefinedActionMapping(FInputActionKeyMapping("StandardMiddleMouseButton", EKeys::MiddleMouseButton));
+	PlayerController->PlayerInput->AddActionMapping(FInputActionKeyMapping("StandardMiddleMouseButton", EKeys::MiddleMouseButton));
 	PlayerInputComponent->BindAction("StandardMiddleMouseButton", IE_Pressed, this, &AToolsContextActor::OnMiddleMouseDown);
 	PlayerInputComponent->BindAction("StandardMiddleMouseButton", IE_Released, this, &AToolsContextActor::OnMiddleMouseUp);
 
-	UPlayerInput::AddEngineDefinedActionMapping(FInputActionKeyMapping("StandardRightMouseButton", EKeys::RightMouseButton));
+	PlayerController->PlayerInput->AddActionMapping(FInputActionKeyMapping("StandardRightMouseButton", EKeys::RightMouseButton));
 	PlayerInputComponent->BindAction("StandardRightMouseButton", IE_Pressed, this, &AToolsContextActor::OnRightMouseDown);
 	PlayerInputComponent->BindAction("StandardRightMouseButton", IE_Released, this, &AToolsContextActor::OnRightMouseUp);
 
+	PlayerController->PlayerInput->AddAxisMapping(FInputAxisKeyMapping("MouseMovementX", EKeys::MouseX));
 	InputComponent->BindAxis("MouseMovementX", this, &AToolsContextActor::OnMouseMoveX);
+	PlayerController->PlayerInput->AddAxisMapping(FInputAxisKeyMapping("MouseMovementY", EKeys::MouseY));
 	InputComponent->BindAxis("MouseMovementY", this, &AToolsContextActor::OnMouseMoveY);
 
 	// generally bound to enter
+	PlayerController->PlayerInput->AddActionMapping(FInputActionKeyMapping("ActiveToolAccept", EKeys::Enter));
 	InputComponent->BindAction("ActiveToolAccept", IE_Released, this, &AToolsContextActor::OnToolAccept);
+	
 	// generally bound to escape
+	PlayerController->PlayerInput->AddActionMapping(FInputActionKeyMapping("ActiveToolExit", EKeys::BackSpace));
+	PlayerController->PlayerInput->AddActionMapping(FInputActionKeyMapping("ActiveToolExit", EKeys::Escape));
 	InputComponent->BindAction("ActiveToolExit", IE_Released, this, &AToolsContextActor::OnToolExit);
 
 	// generally bound to ctrl+z
+	PlayerController->PlayerInput->AddActionMapping(FInputActionKeyMapping("UndoAction", EKeys::Z, false, true));
 	InputComponent->BindAction("UndoAction", IE_Released, this, &AToolsContextActor::OnUndo);
+
 	// generally bound to ctrl+y
+	PlayerController->PlayerInput->AddActionMapping(FInputActionKeyMapping("RedoAction", EKeys::Y, false, true));
 	InputComponent->BindAction("RedoAction", IE_Released, this, &AToolsContextActor::OnRedo);
 
 	// generally bound to delete
+	PlayerController->PlayerInput->AddActionMapping(FInputActionKeyMapping("DeleteAction", EKeys::Delete));
 	InputComponent->BindAction("DeleteAction", IE_Released, this, &AToolsContextActor::OnDelete);
 }
 
