@@ -1,0 +1,30 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "RuntimeToolsSystem",
+	"Description": "Sample project/code that uses the UE4 InteractiveToolsFramework to provide a small modeling app at Runtime",
+	"Category": "Other",
+	"CreatedBy": "gradientspace",
+	"CreatedByURL": "http://www.gradientspace.com",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "RuntimeToolsSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "RuntimeGeometryUtils",
+			"Enabled": true
+		}
+	]
+}
